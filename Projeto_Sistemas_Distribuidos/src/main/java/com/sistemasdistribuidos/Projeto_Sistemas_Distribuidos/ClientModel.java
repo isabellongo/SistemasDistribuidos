@@ -7,55 +7,28 @@ import java.io.*;
 @SuppressWarnings("unused")
 public class ClientModel {
 
-    public static void main(String[] args) throws IOException {
+    private Socket socket;
+    private PrintWriter out;
+    private BufferedReader in;
 
-        System.out.println("Qual o IP do servidor? ");
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        String serverIP = br.readLine();
+    public void connect(String serverIP, int serverPort) throws IOException {
+        socket = new Socket(serverIP, serverPort);
+        out = new PrintWriter(socket.getOutputStream(), true);
+        in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+    }
 
-        System.out.println("Qual a Porta do servidor? ");
-        br = new BufferedReader(new InputStreamReader(System.in));
-        int serverPort = Integer.parseInt(br.readLine());
+    public void sendMessage(String message) {
+        out.println(message);
+    }
 
-        System.out.println("Tentando conectar com host " + serverIP + " na porta " + serverPort);
+    public String receiveMessage() throws IOException {
+        return in.readLine();
+    }
 
-        Socket echoSocket = null;
-        PrintWriter out = null;
-        BufferedReader in = null;
+    public void close() throws IOException {
+        if (out != null) out.close();
+        if (in != null) in.close();
+        if (socket != null && !socket.isClosed()) socket.close();
+    }
+}    
 
-        try {
-            echoSocket = new Socket(serverIP, serverPort);
-            out = new PrintWriter(echoSocket.getOutputStream(), true);
-            in = new BufferedReader(new InputStreamReader(echoSocket.getInputStream()));
-        } catch (UnknownHostException e) {
-            System.err.println("Host " + serverIP + " nao encontrado!");
-            System.exit(1);
-        } catch (IOException e) {
-            System.err.println("Não foi possivel reservar I/O para conectar com " + serverIP);
-            System.exit(1);
-        }
-
-        BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
-        String userInput;
-
-        System.out.println("Conectado. Digite (\"bye\" para sair)");
-        System.out.print("Digite: ");
-        while ((userInput = stdIn.readLine()) != null) {
-            out.println(userInput);
-
-            // end loop
-            if (userInput.toUpperCase().equals("BYE"))
-                break;
-
-            System.out.println("Servidor retornou: " + in.readLine());
-            System.out.print("Digite: ");
-        }
-
-        out.close();
-        in.close();
-        stdIn.close();
-        echoSocket.close();
-    }	
-	
-    
-}
