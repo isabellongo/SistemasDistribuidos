@@ -8,6 +8,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.sistemasdistribuidos.Projeto_Sistemas_Distribuidos.Messages.LoginMessage;
+import com.sistemasdistribuidos.Projeto_Sistemas_Distribuidos.Databases.*;
 
 public class ServerController {
 
@@ -58,6 +59,15 @@ public class ServerController {
             this.view = view;
         }
 
+        public void login(JsonObject jsonObject, PrintWriter out) {
+            Gson gson = new Gson();
+    		LoginMessage msgLogin = gson.fromJson(jsonObject, LoginMessage.class);
+    		String usuario = msgLogin.getUsuario();
+    		String senha = msgLogin.getSenha();
+    		//logica para verificar se o usuario e a senha estao no documento txt
+    		out.println(msgLogin.getOperacao() + msgLogin.getUsuario() + msgLogin.getSenha());
+        }
+        
         @Override
         public void run() {
             try (
@@ -67,15 +77,13 @@ public class ServerController {
                 String inputLine;
                 while ((inputLine = in.readLine()) != null) {
                     view.showMessage("[Cliente " + socket.getInetAddress() + "]: " + inputLine);
-                    Gson gson = new Gson();
                     JsonElement elemento = JsonParser.parseString(inputLine);
                     JsonObject jsonObject = elemento.getAsJsonObject();
                     String operacao = jsonObject.get("operacao").getAsString();
                     
                     switch (operacao.toUpperCase()) {
                     	case "LOGIN":
-                    		LoginMessage msgLogin = gson.fromJson(jsonObject, LoginMessage.class);
-                    		out.println(msgLogin.getOperacao() + msgLogin.getUsuario() + msgLogin.getSenha());
+                    		login(jsonObject, out);
                         break;
                     	default:
                             System.err.println("Operação desconhecida recebida: " + operacao.toUpperCase());
