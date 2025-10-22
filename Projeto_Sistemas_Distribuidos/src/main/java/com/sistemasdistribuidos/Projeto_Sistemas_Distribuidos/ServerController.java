@@ -42,7 +42,7 @@ public class ServerController {
         }
     }
 
-    // 🔹 Classe interna responsável por lidar com um cliente específico
+
     private static class ClientHandler implements Runnable {
         private final Socket socket;
         private final ServerView view;
@@ -59,7 +59,6 @@ public class ServerController {
                 PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
             ) {
                 String inputLine;
-                out.println("Conexão estabelecida com o servidor!");
                 while ((inputLine = in.readLine()) != null) {
                     view.showMessage("[Cliente " + socket.getInetAddress() + "]: " + inputLine);
                     if (inputLine.equalsIgnoreCase("bye")) {
@@ -67,7 +66,7 @@ public class ServerController {
                         break;
                     }
                     // Resposta automática ou personalizada:
-                    out.println("Servidor recebeu: " + inputLine);
+                    out.println(inputLine.toUpperCase());
                 }
             } catch (IOException e) {
                 view.showMessage("Erro com cliente " + socket.getInetAddress() + ": " + e.getMessage());
