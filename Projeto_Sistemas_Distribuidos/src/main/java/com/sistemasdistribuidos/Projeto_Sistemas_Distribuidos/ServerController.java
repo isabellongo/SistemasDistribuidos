@@ -20,7 +20,7 @@ public class ServerController {
         this.model = model;
         this.view = view;
     }
-
+    a
     public void start() {
         try {
             int port = Integer.parseInt(view.ask("Informe a porta para o servidor: "));
