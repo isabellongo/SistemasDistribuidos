@@ -8,7 +8,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.sistemasdistribuidos.Projeto_Sistemas_Distribuidos.Messages.LoginMessage;
-import com.sistemasdistribuidos.Projeto_Sistemas_Distribuidos.Databases.*;
 
 public class ServerController {
 
@@ -20,7 +19,7 @@ public class ServerController {
         this.model = model;
         this.view = view;
     }
-    a
+
     public void start() {
         try {
             int port = Integer.parseInt(view.ask("Informe a porta para o servidor: "));
@@ -59,13 +58,52 @@ public class ServerController {
             this.view = view;
         }
 
+        private static final Object LOCK = new Object(); // trava global para sincronização
+
         public void login(JsonObject jsonObject, PrintWriter out) {
             Gson gson = new Gson();
-    		LoginMessage msgLogin = gson.fromJson(jsonObject, LoginMessage.class);
-    		String usuario = msgLogin.getUsuario();
-    		String senha = msgLogin.getSenha();
-    		//logica para verificar se o usuario e a senha estao no documento txt
-    		out.println(msgLogin.getOperacao() + msgLogin.getUsuario() + msgLogin.getSenha());
+            LoginMessage msgLogin = gson.fromJson(jsonObject, LoginMessage.class);
+
+            String usuario = msgLogin.getUsuario();
+            String senha = msgLogin.getSenha();
+            boolean autenticado = false;
+
+            synchronized (LOCK) {
+                try (InputStream inputStream = getClass().getResourceAsStream("/Clientes.txt")) {
+                    if (inputStream == null) {
+                        out.println("erro: arquivo de usuarios nao encontrado");
+                        return;
+                    }
+
+                    try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
+                        String linha;
+                        while ((linha = br.readLine()) != null) {
+                            String[] partes = linha.split(";");
+                            if (partes.length == 2) {
+                                String usuarioArquivo = partes[0].trim();
+                                String senhaArquivo = partes[1].trim();
+
+                                if (usuario.equals(usuarioArquivo) && senha.equals(senhaArquivo)) {
+                                    autenticado = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                } catch (IOException e) {
+                    out.println("erro: problema ao ler o arquivo (" + e.getMessage() + ")");
+                    return;
+                } catch (Exception e) {
+                    out.println("erro inesperado: " + e.getMessage());
+                    return;
+                }
+            }
+
+            if (autenticado) {
+                out.println("sucesso");
+            } else {
+                out.println("erro");
+            }
         }
         
         @Override
