@@ -2,6 +2,9 @@ package com.sistemasdistribuidos.Projeto_Sistemas_Distribuidos;
 
 import java.io.IOException;
 
+import com.google.gson.Gson;
+import com.sistemasdistribuidos.Projeto_Sistemas_Distribuidos.Messages.*;
+
 public class ClientController {
 
     private final ClientModel model;
@@ -24,10 +27,29 @@ public class ClientController {
             String userInput;
             while (true) {
                 userInput = view.ask("Digite: ");
-                model.sendMessage(userInput);
-
+                String[] partes = userInput.split(" ");
+                
                 if (userInput.equalsIgnoreCase("bye"))
                     break;
+                
+                switch (partes[0].toUpperCase()) {
+                
+                	case "LOGIN":
+                		String operacao = partes[0].toUpperCase();
+                        String usuario = partes[1];
+                        String senha = partes[2];
+                        
+                        LoginMessage mensagem = new LoginMessage(operacao, usuario, senha);
+                        Gson gson = new Gson();
+                        String jsonOutput = gson.toJson(mensagem);
+                        System.out.println(jsonOutput);
+                        model.sendMessage(jsonOutput);
+                        break;
+                	default:
+                        System.err.println("Operação desconhecida recebida: " + partes[0]);
+                        break;
+                }
+
 
                 String response = model.receiveMessage();
                 view.showMessage("Servidor retornou: " + response);

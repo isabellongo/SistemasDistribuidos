@@ -3,6 +3,12 @@ package com.sistemasdistribuidos.Projeto_Sistemas_Distribuidos;
 import java.io.*;
 import java.net.Socket;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.sistemasdistribuidos.Projeto_Sistemas_Distribuidos.Messages.LoginMessage;
+
 public class ServerController {
 
     private final ServerModel model;
@@ -61,12 +67,21 @@ public class ServerController {
                 String inputLine;
                 while ((inputLine = in.readLine()) != null) {
                     view.showMessage("[Cliente " + socket.getInetAddress() + "]: " + inputLine);
-                    if (inputLine.equalsIgnoreCase("bye")) {
-                        out.println("Conexão encerrada pelo servidor. Tchau!");
+                    Gson gson = new Gson();
+                    JsonElement elemento = JsonParser.parseString(inputLine);
+                    JsonObject jsonObject = elemento.getAsJsonObject();
+                    String operacao = jsonObject.get("operacao").getAsString();
+                    
+                    switch (operacao.toUpperCase()) {
+                    	case "LOGIN":
+                    		LoginMessage msgLogin = gson.fromJson(jsonObject, LoginMessage.class);
+                    		out.println(msgLogin.getOperacao() + msgLogin.getUsuario() + msgLogin.getSenha());
                         break;
+                    	default:
+                            System.err.println("Operação desconhecida recebida: " + operacao.toUpperCase());
+                            break;
                     }
-                    // Resposta automática ou personalizada:
-                    out.println(inputLine.toUpperCase());
+                   
                 }
             } catch (IOException e) {
                 view.showMessage("Erro com cliente " + socket.getInetAddress() + ": " + e.getMessage());
